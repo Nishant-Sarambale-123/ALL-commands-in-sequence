@@ -1,293 +1,282 @@
-Here’s a **complete Git command flow (step-by-step)** from starting → working → pushing → advanced usage. This is structured exactly how you’d use Git in real projects 👇
+Here’s a **complete Terraform flow (start → end)** exactly how you use it in real DevOps projects 👇
 
 ---
 
-# 🚀 1. Initial Git Setup (First Time Only)
+# 🚀 1. Install Terraform
+
+Download from 👉 Terraform official site
+
+Verify:
 
 ```bash
-git config --global user.name "Your Name"
-git config --global user.email "your@email.com"
-git config --list
-```
-
-👉 Optional:
-
-```bash
-git config --global init.defaultBranch main
+terraform -version
 ```
 
 ---
 
-# 📁 2. Start a Repository
+# ⚙️ 2. Configure Cloud Provider (Example: AWS)
 
-### Create new repo
-
-```bash
-git init
+```hcl
+provider "aws" {
+  region = "ap-south-1"
+}
 ```
 
-### Or clone existing repo
+👉 Authentication (any one):
+
+* AWS CLI (`aws configure`)
+* Access key & secret key
+* IAM role (best practice)
+
+---
+
+# 📁 3. Create Terraform Files
+
+Common structure:
 
 ```bash
-git clone <repo-url>
-cd <repo-folder>
+main.tf        # resources
+variables.tf   # input variables
+outputs.tf     # outputs
+terraform.tfvars # values
 ```
 
 ---
 
-# 📌 3. Check Status
+# 🧱 4. Write First Resource
 
-```bash
-git status
+Example EC2:
+
+```hcl
+resource "aws_instance" "my_ec2" {
+  ami           = "ami-123456"
+  instance_type = "t2.micro"
+}
 ```
 
 ---
 
-# ➕ 4. Add Files (Staging)
-
-### Add single file
+# 🔍 5. Initialize Terraform
 
 ```bash
-git add file.txt
+terraform init
 ```
 
-### Add all files
+👉 Downloads providers & plugins
+
+---
+
+# 📊 6. Validate Configuration
 
 ```bash
-git add .
+terraform validate
 ```
 
 ---
 
-# 💾 5. Commit Changes
+# 👀 7. Preview Changes (Plan)
 
 ```bash
-git commit -m "Initial commit"
+terraform plan
+```
+
+👉 Shows:
+
+* What will be created
+* Modified
+* Destroyed
+
+---
+
+# 🏗️ 8. Apply (Create Infrastructure)
+
+```bash
+terraform apply
+```
+
+👉 Auto approve:
+
+```bash
+terraform apply -auto-approve
 ```
 
 ---
 
-# 🔄 6. Connect to Remote Repository
+# 🔎 9. Check State
 
 ```bash
-git remote add origin <repo-url>
-git remote -v
+terraform show
+terraform state list
+```
+
+👉 State file:
+
+```
+terraform.tfstate
 ```
 
 ---
 
-# ⬆️ 7. Push Code to Remote
+# ✏️ 10. Modify Infrastructure
 
-### First push
-
-```bash
-git push -u origin main
-```
-
-### Next pushes
+* Change `.tf` file
+* Run again:
 
 ```bash
-git push
+terraform plan
+terraform apply
 ```
 
 ---
 
-# ⬇️ 8. Pull Latest Changes
+# ❌ 11. Destroy Infrastructure
 
 ```bash
-git pull origin main
+terraform destroy
 ```
 
 ---
 
-# 🌿 9. Branching (Very Important)
+# 📦 12. Variables (Important)
 
-### Create branch
-
-```bash
-git branch feature-branch
+```hcl
+variable "instance_type" {
+  default = "t2.micro"
+}
 ```
 
-### Switch branch
+Use:
 
-```bash
-git checkout feature-branch
-```
-
-👉 New way:
-
-```bash
-git switch feature-branch
-```
-
-### Create + switch
-
-```bash
-git checkout -b feature-branch
+```hcl
+instance_type = var.instance_type
 ```
 
 ---
 
-# 🔀 10. Merge Branch
+# 📤 13. Outputs
 
-```bash
-git checkout main
-git merge feature-branch
+```hcl
+output "instance_ip" {
+  value = aws_instance.my_ec2.public_ip
+}
 ```
 
 ---
 
-# ❌ 11. Delete Branch
+# 🔐 14. Remote State (Production)
 
-```bash
-git branch -d feature-branch
+Use S3:
+
+```hcl
+terraform {
+  backend "s3" {
+    bucket = "my-terraform-state"
+    key    = "project/terraform.tfstate"
+    region = "ap-south-1"
+  }
+}
 ```
 
 ---
 
-# 🔍 12. View History
+# 🌿 15. Workspaces
 
 ```bash
-git log
-git log --oneline
+terraform workspace new dev
+terraform workspace new prod
+terraform workspace list
+terraform workspace select dev
 ```
 
 ---
 
-# 🧾 13. See Changes
+# 🧩 16. Modules (Reusable Code)
 
-```bash
-git diff
-git diff --staged
+```hcl
+module "ec2" {
+  source = "./modules/ec2"
+}
 ```
 
 ---
 
-# ♻️ 14. Undo Changes
-
-### Unstage file
+# 🔁 17. Import Existing Resources
 
 ```bash
-git restore --staged file.txt
-```
-
-### Discard changes
-
-```bash
-git restore file.txt
-```
-
-### Undo last commit (keep changes)
-
-```bash
-git reset --soft HEAD~1
-```
-
-### Undo commit completely
-
-```bash
-git reset --hard HEAD~1
+terraform import aws_instance.my_ec2 i-123456
 ```
 
 ---
 
-# 🔁 15. Stash (Temporary Save)
+# 🔄 18. Format Code
 
 ```bash
-git stash
-git stash list
-git stash apply
-git stash pop
+terraform fmt
 ```
 
 ---
 
-# 🔗 16. Work with Remote
+# 🔍 19. Graph (Optional)
 
 ```bash
-git fetch
-git pull
-git push
+terraform graph
 ```
 
 ---
 
-# 🏷️ 17. Tagging
+# 🧠 Real DevOps Workflow (Important)
 
 ```bash
-git tag v1.0
-git push origin v1.0
+# Step 1
+terraform init
+
+# Step 2
+terraform plan
+
+# Step 3
+terraform apply
+
+# Step 4 (changes)
+terraform plan
+terraform apply
+
+# Step 5 (cleanup)
+terraform destroy
 ```
 
 ---
 
-# 🔐 18. Remove Remote
+# 📌 Terraform Flow Summary
 
-```bash
-git remote remove origin
+```
+write code → init → validate → plan → apply → modify → destroy
 ```
 
 ---
 
-# 🧹 19. Clean Untracked Files
+# ⚡ Pro Tips (Interview + Real World)
 
-```bash
-git clean -f
-```
-
----
-
-# 📦 20. Advanced Useful Commands
-
-### Rebase
-
-```bash
-git rebase main
-```
-
-### Cherry-pick
-
-```bash
-git cherry-pick <commit-id>
-```
-
-### Show commit
-
-```bash
-git show <commit-id>
-```
-
----
-
-# 🧠 Real DevOps Workflow (Most Important)
-
-```bash
-git clone <repo>
-cd project
-git checkout -b feature
-# do changes
-git add .
-git commit -m "feature added"
-git push origin feature
-# create PR → merge
-git pull origin main
-```
+* Always use **remote state (S3 + DynamoDB locking)**
+* Never commit `terraform.tfstate`
+* Use **modules** for reusable infra
+* Use **variables & tfvars** for environments
+* Prefer **IAM roles** over access keys
 
 ---
 
 # ✅ Key Takeaway
 
-👉 Git flow always follows this pattern:
+👉 Terraform is **Infrastructure as Code (IaC)** tool used to:
 
-```
-init/clone → add → commit → push → pull → branch → merge
-```
+* Create
+* Update
+* Delete infrastructure automatically
 
 ---
 
-If you want, I can also give:
-✅ Interview questions on Git
-✅ Real DevOps scenarios (merge conflict, rebase vs merge)
-✅ Cheat sheet PDF
+If you want next level:
+✅ Terraform interview questions (basic → advanced)
+✅ Real-world project (VPC + EC2 + ALB full setup)
+✅ Comparison: Terraform vs CloudFormation
 
 Just tell 👍
